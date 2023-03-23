@@ -1,8 +1,8 @@
 {
-  "name": "soft-rug-pull-bot",
+  "name": "soft-rug-pull-bot-alert",
   "version": "0.0.1",
-  "description": "Soft Rug Pull Forta Agent Typescript",
-  "repository": "https://github.com/sholance/forta-bot",
+  "description": "Soft Rug Pull Forta Agent Alert Typescript",
+  "repository": "https://github.com/sholance/forta-2",
   "chainIds": [
     1,
     137,
