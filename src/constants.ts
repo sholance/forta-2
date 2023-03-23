@@ -1,0 +1,1 @@
+export const BOT_ID = "0x1a6da262bff20404ce35e8d4f63622dd9fbe852e5def4dc45820649428da9ea1"
