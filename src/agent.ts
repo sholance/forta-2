@@ -44,6 +44,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
         ],
       }),
     ]
+    return findings
   }
   return findings
 }
