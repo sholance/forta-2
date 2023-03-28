@@ -39,6 +39,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
             label: "soft-rug-pull-scam",
             confidence: 1,
             remove: false,
+            metadata: {},
           },
         ],
       }),
