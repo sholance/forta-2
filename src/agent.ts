@@ -1,7 +1,7 @@
 import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize } from 'forta-agent'
 import { BOT_ID } from './constants'
 
-const ALERT_THRESHOLD = 2;
+const ALERT_THRESHOLD = 1;
 
 const initialize: Initialize = async () => {
   return {
@@ -24,7 +24,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
   const uniqueAlertIds: Set<string> = new Set();
   uniqueAlertIds.add(alertId || '')
 
-  if (uniqueAlertIds.size >= ALERT_THRESHOLD) {
+  if (uniqueAlertIds.size > ALERT_THRESHOLD) {
     const findings = [
       Finding.fromObject({
         name: "Multiple Soft Rug Pulls Detected",
@@ -43,10 +43,8 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
         ],
       }),
     ]
-
-    return findings
   }
-
+  console.log('Findings:', findings);
   return findings
 }
 
