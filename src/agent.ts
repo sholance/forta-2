@@ -1,7 +1,7 @@
 import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize } from 'forta-agent'
 import { BOT_ID } from './constants'
 
-const ALERT_THRESHOLD = 1;
+const ALERT_THRESHOLD = 0;
 
 const initialize: Initialize = async () => {
   return {
@@ -16,50 +16,58 @@ const initialize: Initialize = async () => {
   }
 }
 
-const handleAlert: HandleAlert = async (alertEvent: AlertEvent): Promise<Finding[]> => {
-    let findings: Finding[] = [];
-if (alertEvent) {
-    const alert = alertEvent.alert
-    const alertId = alert?.alertId;
-    const contractAddress = alert?.contracts?.[0]?.address;
-    const attacker = alert?.contracts?.[0]?.address?.[0];
-    const uniqueAlertIds: Set<string> = new Set();
-    uniqueAlertIds.add(alertId!)
+const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
+  let findings: Finding[] = [];
+  const alert = alertEvent.alert
+  const alertId = alert?.alertId;
+  const address = alert.labels?.[0]?.entity;
+  const uniqueAlertIds: Set<string> = new Set();
+  uniqueAlertIds.add(alertId!)
 
-    if (uniqueAlertIds.size > ALERT_THRESHOLD) {
-      const findings = [
-        Finding.fromObject({
-          name: "Soft Rug Pulls Detected",
-          description: `Soft rug pulls have been detected for address ${contractAddress}.`,
-          alertId: "SOFT-RUG-PULL",
-          severity: FindingSeverity.High,
-          type: FindingType.Suspicious,
-          labels: [
-            {
-              entityType: EntityType.Address,
-              entity: contractAddress!,
-              label: "soft-rug-pull-scam",
-              confidence: 1,
-              remove: false,
-              metadata: {},
-            },
-            {
-              entityType: EntityType.Address,
-              entity: attacker!,
-              label: "attacker",
-              confidence: 1,
-              remove: false,
-              metadata: {},
-            },
-          ],
-        }),
-      ]
-      return findings
-    }
-  }
+  if (alert && (uniqueAlertIds.size > ALERT_THRESHOLD)) {
+    try {
+    const findings = [
+      Finding.fromObject({
+        name: "Soft Rug Pulls Detected",
+        description: `Soft rug pulls have been detected`,
+        alertId: alertId!,
+        severity: FindingSeverity.High,
+        type: FindingType.Suspicious,
+        labels: [
+          {
+            entityType: EntityType.Address,
+            entity: address!,
+            label: "soft-rug-pull-scam",
+            confidence: 1,
+            remove: false,
+            metadata: {},
+          },
+          {
+            entityType: EntityType.Address,
+            entity: address!,
+            label: "attacker",
+            confidence: 1,
+            remove: false,
+            metadata: {}
+          },
+        ],          
+        metadata: {
+          alert_hash: alert.hash!, 
+          bot_id: alert.source?.bot?.id!, 
+          alert_id: alertId!,
+          contractAddress: alert.metadata.contractAddress, 
+          token: alert.metadata.tokenAddress, 
+          deployer: alert.metadata.deployer,
+      },
+      }),
+    ]
     return findings
+  } catch (err) {
+    console.log(err)
+  }
+  }
+  return findings
 }
-
 
 export default {
   initialize,
