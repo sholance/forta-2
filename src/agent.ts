@@ -1,7 +1,7 @@
 import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize } from 'forta-agent'
 import { BOT_ID } from './constants'
 
-const ALERT_THRESHOLD = 0;
+const ALERT_THRESHOLD = 1;
 
 const initialize: Initialize = async () => {
   return {
@@ -20,11 +20,59 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
   let findings: Finding[] = [];
   const alert = alertEvent.alert
   const alertId = alert?.alertId;
-  const address = alert.labels?.[0]?.entity;
-  const uniqueAlertIds: Set<string> = new Set();
-  uniqueAlertIds.add(alertId!)
+  const address = alertEvent.alert.description?.slice(0, 42).toLowerCase();
+  const alertIdset = new Set();
 
-  if (alert && (uniqueAlertIds.size > ALERT_THRESHOLD)) {
+  if (alertId) {
+    alertIdset.add(alertId);
+  }
+  
+  if (alertIdset.size > 1) {
+    console.log("hurray")
+  }
+  if (alert.severity === "High") {
+    try {
+      const findings = [
+        Finding.fromObject({
+          name: "Soft Rug Pulls Detected",
+          description: `Likely Soft rug pull has been detected`,
+          alertId: alertId!,
+          severity: FindingSeverity.High,
+          type: FindingType.Suspicious,
+          labels: [
+            {
+              entityType: EntityType.Address,
+              entity: address!,
+              label: "soft-rug-pull-scam",
+              confidence: 1,
+              remove: false,
+              metadata: {},
+            },
+            {
+              entityType: EntityType.Address,
+              entity: address!,
+              label: "attacker",
+              confidence: 1,
+              remove: false,
+              metadata: {}
+            },
+          ],          
+          metadata: {
+            alert_hash: alert.hash!, 
+            bot_id: alert.source?.bot?.id!, 
+            alert_id: alertId!,
+            contractAddress: alert.metadata.contractAddress, 
+            token: alert.metadata.tokenAddress, 
+            deployer: alert.metadata.deployer,
+        },
+        }),
+      ]
+      return findings 
+
+    } catch {
+      } 
+     }
+  if (alert.relatedAlerts || alertIdset.size > 1) {
     try {
     const findings = [
       Finding.fromObject({
@@ -61,12 +109,12 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
       },
       }),
     ]
-    return findings
-  } catch (err) {
-    console.log(err)
-  }
-  }
-  return findings
+   return findings
+  } catch {
+    }
+}
+return findings
+
 }
 
 export default {

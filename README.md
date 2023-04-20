@@ -22,7 +22,7 @@ Describe each of the type of alerts fired by this agent
 - SOFT-RUG-PULL
   - Fired when two or more soft rug pull is detected from the same token address
   - Label field contains entityType, entity, label, and confidence for address and transaction
-
+  - Metadata field contains alert_hash, bot_id, alert_id, contractAddress, token, deployer
 
 
 ## Test Data
