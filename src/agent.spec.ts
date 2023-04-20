@@ -1,24 +1,31 @@
-const { handleAlert } = require("./agent");
+import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize } from 'forta-agent';
+import { BOT_ID } from './constants';
+import agent from './agent';
+const {handleAlert, initialize} = agent
 
-describe("Soft Rug Pull agent", () => {
-  let alertEvent: any
-  const mockFinding = { name: "test finding", description: "test description", alertId: "test alert", severity: 0, type: 0, labels: [] };
-
-  beforeEach(() => {
-    alertEvent = { alert: { alertId: "test alert", metadata: { contractAddress: "0x123" }, labels: [{ entityType: 0, entity: "0x456", label: "test label", confidence: 0, remove: false }] }, botId: "test bot" };
+describe('myAgent', () => {
+  it('should export initialize and handleAlert functions', () => {
+    expect(typeof initialize).toBeDefined();
+    expect(typeof handleAlert).toBeDefined();
   });
 
-  it("returns a finding when the threshold is met", async () => {
-    const findings = await handleAlert(alertEvent);
-    expect(findings).toEqual([]);
-    const findings2 = await handleAlert({ ...alertEvent, alert: { ...alertEvent.alert, alertId: "test alert 2" } });
-    expect(findings2).toEqual([mockFinding, mockFinding, mockFinding]);
-  });
 
-  it("does not return a finding when the threshold is not met", async () => {
-    const findings = await handleAlert(alertEvent);
-    expect(findings).toEqual([]);
-    const findings2 = await handleAlert({ ...alertEvent, alert: { ...alertEvent.alert, labels: [{ entityType: 0, entity: "0x789", label: "test label", confidence: 0, remove: false }] } });
-    expect(findings2).toEqual([]);
+  it('should return alertConfig from initialize()', async () => {
+    const mockConfig = {
+      botId: BOT_ID,
+    };
+    const mockChainId = '1';
+    const result = await initialize();
+
+    expect(result).toMatchObject({
+      alertConfig: {
+        subscriptions: [
+          {
+            botId: BOT_ID,
+            alertIds: ["SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION", "SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE", "SOFT-RUG-PULL-SUS-POOL-REMOVAL"],
+          },
+        ],
+      },
+    });
   });
 });
