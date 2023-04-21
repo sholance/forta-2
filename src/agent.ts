@@ -72,8 +72,8 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
                 bot_id: alert.source?.bot?.id!,
                 alert_id: alertIdString,
                 contractAddress: alert.metadata.contractAddress,
-                token: alert.metadata.tokenAddress,
-                deployer: alert.metadata.deployer,
+                token: alert.metadata?.tokenAddress,
+                deployer: alert.metadata?.deployer,
               },
             });
             findings.push(finding);
@@ -104,7 +104,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
           alert_hash: alert.hash!,
           bot_id: alert.source?.bot?.id!,
           contractAddress: alert.metadata.contractAddress,
-          token: alert.metadata.tokenAddress,
+          token: alert.metadata?.tokenAddress,
           deployer: alert.metadata.deployer,
         },
       })
