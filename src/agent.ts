@@ -2,7 +2,7 @@ import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEv
 import { BOT_ID } from './constants'
 
 const ALERT_THRESHOLD = 2;
-const alertDict: { [key: string]: Set<string> } = {}
+const alertDict: { [key: string]: { alertIds: Set<string>, alertHashes: Set<string> } } = {}
 
 
 const initialize: Initialize = async () => {
@@ -22,20 +22,25 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
   let findings: Finding[] = [];
   const alert = alertEvent.alert
   const alertId = alert?.alertId;
+  const alertHash = alert?.hash;
   const address = alert.metadata.contractAddress; 
+  const alertType = alert?.findingType;
 
-  if (alertId && address) {
+
+  if (alertId && alertHash && address) {
       if (!alertDict[address]) {
-        alertDict[address] = new Set();
+        alertDict[address] = { alertIds: new Set(), alertHashes: new Set() };
       }
-      alertDict[address].add(alertId);
+      alertDict[address].alertIds.add(alertId);
+      alertDict[address].alertHashes.add(alertHash);
 
-    if (alertDict[address]?.size >= ALERT_THRESHOLD) {
+    if (alertDict[address]?.alertIds.size >= ALERT_THRESHOLD) {
       try {
-        for (const [address, alertIds] of Object.entries(alertDict)) {
+        for (const [address, { alertIds, alertHashes }] of Object.entries(alertDict)) {
           const findingsCount = alertIds.size;
           if (findingsCount >= ALERT_THRESHOLD) {
             const alertIdString = Array.from(alertIds).join(" && ");
+            const alertHashString = Array.from(alertHashes).join(" && ");
             const finding = Finding.fromObject({
               name: "Soft Rug Pulls Detected",
               description: `Likely Soft rug pull has been detected`,
@@ -61,7 +66,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
                 },
               ],
               metadata: {
-                alert_hash: alert.hash!,
+                alert_hash: alertHashString,
                 bot_id: alert.source?.bot?.id!,
                 alert_id: alertIdString,
                 contractAddress: alert.metadata.contractAddress,
@@ -76,11 +81,40 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
         console.log(error);
       }
     }
+    if (alertType === 'Exploit') {
+      const finding = Finding.fromObject({
+        name: "Potential Exploit Detected",
+        description: `A potential exploit has been detected in contract ${address}`,
+        alertId: alertId!,
+        severity: FindingSeverity.High,
+        type: FindingType.Suspicious,
+        labels: [
+          {
+            entityType: EntityType.Address,
+            entity: address,
+            label: "potential-exploit",
+            confidence: 1,
+            remove: false,
+            metadata: {},
+          },
+        ],
+        metadata: {
+          alert_hash: alert.hash!,
+          bot_id: alert.source?.bot?.id!,
+          contractAddress: alert.metadata.contractAddress,
+          token: alert.metadata.tokenAddress,
+          deployer: alert.metadata.deployer,
+        },
+      })
+      findings.push(finding);
+    }
   }
 
   return findings
 
 }
+
+
 
 export default {
   initialize,
