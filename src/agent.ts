@@ -1,18 +1,20 @@
-import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize } from 'forta-agent'
+import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize, getEthersProvider } from 'forta-agent'
 import { BOT_ID } from './constants'
 
 const ALERT_THRESHOLD = 2;
 const alertDict: { [key: string]: { alertIds: Set<string>, alertHashes: Set<string> } } = {}
 
-
 const initialize: Initialize = async () => {
+  const { chainId } = await getEthersProvider().getNetwork();
+
   return {
     alertConfig: {
       subscriptions: [
         {
           botId: BOT_ID,
           alertIds: ["SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION", "SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE", "SOFT-RUG-PULL-SUS-POOL-REMOVAL"],
-        },
+          chainId: chainId
+        }
       ],
     },
   }
