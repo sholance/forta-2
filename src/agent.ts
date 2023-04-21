@@ -83,8 +83,8 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
     }
     if (alertType === 'Exploit') {
       const finding = Finding.fromObject({
-        name: "Potential Exploit Detected",
-        description: `A potential exploit has been detected in contract ${address}`,
+        name: "Soft Rug Pulls",
+        description: `Soft rug pull has been detected`,
         alertId: alertId!,
         severity: FindingSeverity.High,
         type: FindingType.Suspicious,
