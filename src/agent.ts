@@ -2,7 +2,7 @@ import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEv
 import { BOT_ID } from './constants'
 
 const ALERT_THRESHOLD = 2;
-const alertDict: { [key: string]: { alertIds: Set<string>, alertHashes: Set<string> } } = {}
+const alertDict: { [key: string]: { alertIds: Set<string>, alertHashes: Set<string>, tokens: Set<string> } } = {}
 
 const initialize: Initialize = async () => {
   const { chainId } = await getEthersProvider().getNetwork();
@@ -27,20 +27,24 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
   const alertHash = alert?.hash;
   const address = alert.metadata.contractAddress; 
   const alertType = alert?.findingType;
+  const token = alert.metadata?.tokenAddress;
 
 
   if (alertId && alertHash && address) {
       if (!alertDict[address]) {
-        alertDict[address] = { alertIds: new Set(), alertHashes: new Set() };
+        alertDict[address] = { alertIds: new Set(), alertHashes: new Set(), tokens: new Set() };
       }
       alertDict[address].alertIds.add(alertId);
       alertDict[address].alertHashes.add(alertHash);
+      alertDict[address].tokens.add(token);
 
     if (alertDict[address]?.alertIds.size >= ALERT_THRESHOLD) {
       try {
         for (const [address, { alertIds, alertHashes }] of Object.entries(alertDict)) {
+          const tokens = Array.from(alertDict[address].tokens);
+
           const findingsCount = alertIds.size;
-          if (findingsCount >= ALERT_THRESHOLD) {
+          if ((tokens[0] === tokens[1] ) && findingsCount >= ALERT_THRESHOLD) {
             const alertIdString = Array.from(alertIds).join(" && ");
             const alertHashString = Array.from(alertHashes).join(" && ");
             const finding = Finding.fromObject({
