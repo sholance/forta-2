@@ -1,7 +1,7 @@
 import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEvent, Initialize, getEthersProvider } from 'forta-agent'
 import { BOT_ID } from './constants'
 
-const ALERT_THRESHOLD = 2;
+const ALERT_THRESHOLD = 1;
 const alertDict: { [key: string]: { alerts: Set<any>, alertIds: Set<string>, alertHashes: Set<string>, tokens: Set<string> } } = {}
 
 const initialize: Initialize = async () => {
@@ -26,9 +26,8 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
   const alertId = alert?.alertId;
   const alertHash = alert?.hash;
   const txHash = alert.metadata.transaction
-  const address = alert.metadata.contractAddress; 
   const alertType = alert?.findingType;
-  const token = alert.metadata?.tokenAddress;
+  const address = alert.metadata?.tokenAddress;
 
 
   if (alertId && alertHash && address) {
@@ -38,15 +37,13 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
       alertDict[address].alertIds.add(alertId);
       alertDict[address].alertHashes.add(alertHash);
       alertDict[address].alerts.add(alert)
-      alertDict[address].tokens.add(token);
 
     if (alertDict[address]?.alertIds.size >= ALERT_THRESHOLD) {
       try {
         for (const [address, { alertIds, alertHashes }] of Object.entries(alertDict)) {
-          const tokens = Array.from(alertDict[address].tokens);
           const alerts = Array.from(alertDict[address].alerts)
           const findingsCount = alertIds.size;
-          if ((alerts[0].metadata?.tokenAddress === alerts[1].metadata?.tokenAddress ) && findingsCount >= ALERT_THRESHOLD) {
+          if (alerts.length > ALERT_THRESHOLD) {
             const alertIdString = Array.from(alertIds).join(" && ");
             const alertHashString = Array.from(alertHashes).join(" && ");
             const finding = Finding.fromObject({
