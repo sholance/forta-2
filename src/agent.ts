@@ -41,7 +41,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
       try {
         const alerts = Array.from(alertDict[address].alerts);
         const findingsCount = alertDict[address].alertIds.size;
-        if (alerts.length > 1 && alerts.every((a) => a.alert.metadata.tokenAddress === alerts[0].alert.metadata.tokenAddress) && findingsCount >= ALERT_THRESHOLD) {
+        if (alerts.length > 1 && alerts.every((a) => a.alert.metadata.tokenAddress === alerts[0].alert.metadata.tokenAddress) && findingsCount == ALERT_THRESHOLD) {
           const alertIdString = Array.from(alertDict[address].alertIds).join(" && ");
           const alertHashString = Array.from(alertDict[address].alertHashes).join(" && ");
           const txHashString = Array.from(alertDict[address].txHashes).join(" && ");
