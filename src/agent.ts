@@ -2,7 +2,7 @@ import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEv
 import { BOT_ID } from './constants'
 
 const ALERT_THRESHOLD = 2;
-const alertDict: { [key: string]: { alertIds: Set<string>, alertHashes: Set<string>, tokens: Set<string> } } = {}
+const alertDict: { [key: string]: { alerts: Set<any>, alertIds: Set<string>, alertHashes: Set<string>, tokens: Set<string> } } = {}
 
 const initialize: Initialize = async () => {
   const { chainId } = await getEthersProvider().getNetwork();
@@ -25,6 +25,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
   const alert = alertEvent.alert
   const alertId = alert?.alertId;
   const alertHash = alert?.hash;
+  const txHash = alert.metadata.transaction
   const address = alert.metadata.contractAddress; 
   const alertType = alert?.findingType;
   const token = alert.metadata?.tokenAddress;
@@ -32,19 +33,20 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
 
   if (alertId && alertHash && address) {
       if (!alertDict[address]) {
-        alertDict[address] = { alertIds: new Set(), alertHashes: new Set(), tokens: new Set() };
+        alertDict[address] = { alerts: new Set (), alertIds: new Set(), alertHashes: new Set(), tokens: new Set() };
       }
       alertDict[address].alertIds.add(alertId);
       alertDict[address].alertHashes.add(alertHash);
+      alertDict[address].alerts.add(alert)
       alertDict[address].tokens.add(token);
 
     if (alertDict[address]?.alertIds.size >= ALERT_THRESHOLD) {
       try {
         for (const [address, { alertIds, alertHashes }] of Object.entries(alertDict)) {
           const tokens = Array.from(alertDict[address].tokens);
-
+          const alerts = Array.from(alertDict[address].alerts)
           const findingsCount = alertIds.size;
-          if ((tokens[0] === tokens[1] ) && findingsCount >= ALERT_THRESHOLD) {
+          if ((alerts[0].metadata?.tokenAddress === alerts[1].metadata?.tokenAddress ) && findingsCount >= ALERT_THRESHOLD) {
             const alertIdString = Array.from(alertIds).join(" && ");
             const alertHashString = Array.from(alertHashes).join(" && ");
             const finding = Finding.fromObject({
