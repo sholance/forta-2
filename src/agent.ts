@@ -2,7 +2,7 @@ import { EntityType, Finding, FindingSeverity, FindingType, HandleAlert, AlertEv
 import { BOT_ID } from './constants'
 
 const ALERT_THRESHOLD = 1;
-const alertDict: { [key: string]: { alerts: Set<any>, alertIds: Set<string>, alertHashes: Set<string>, tokens: Set<string> } } = {}
+const alertDict: { [key: string]: { alerts: Set<any>, alertIds: Set<string>, alertHashes: Set<string>, txHashes: Set<string> } } = {}
 
 const initialize: Initialize = async () => {
   const { chainId } = await getEthersProvider().getNetwork();
@@ -32,20 +32,25 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
 
   if (alertId && alertHash && address) {
       if (!alertDict[address]) {
-        alertDict[address] = { alerts: new Set (), alertIds: new Set(), alertHashes: new Set(), tokens: new Set() };
+        alertDict[address] = { alerts: new Set (), alertIds: new Set(), alertHashes: new Set(), txHashes: new Set() };
       }
       alertDict[address].alertIds.add(alertId);
       alertDict[address].alertHashes.add(alertHash);
       alertDict[address].alerts.add(alert)
+      alertDict[address].txHashes.add(txHash)
+
 
     if (alertDict[address]?.alertIds.size >= ALERT_THRESHOLD) {
       try {
-        for (const [address, { alertIds, alertHashes }] of Object.entries(alertDict)) {
+        for (const [address, { alertIds, alertHashes, txHashes }] of Object.entries(alertDict)) {
           const alerts = Array.from(alertDict[address].alerts)
+
           const findingsCount = alertIds.size;
           if (alerts.length > ALERT_THRESHOLD) {
             const alertIdString = Array.from(alertIds).join(" && ");
             const alertHashString = Array.from(alertHashes).join(" && ");
+            const txHashString = Array.from(txHashes).join(" && ")
+
             const finding = Finding.fromObject({
               name: "Soft Rug Pulls Detected",
               description: `Likely Soft rug pull has been detected`,
@@ -77,6 +82,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
                 contractAddress: alert.metadata.contractAddress,
                 token: alert.metadata?.tokenAddress,
                 deployer: alert.metadata?.deployer,
+                txHashes: txHashString,
               },
             });
             findings.push(finding);
