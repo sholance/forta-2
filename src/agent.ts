@@ -46,7 +46,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
           const alerts = Array.from(alertDict[address].alerts)
 
           const findingsCount = alertIds.size;
-          if (findingsCount > ALERT_THRESHOLD) {
+          if (alerts.length > ALERT_THRESHOLD) {
             const alertIdString = Array.from(alertIds).join(" && ");
             const alertHashString = Array.from(alertHashes).join(" && ");
             const txHashString = Array.from(txHashes).join(" && ")
