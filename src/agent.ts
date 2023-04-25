@@ -41,11 +41,11 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
       try {
         const alerts = Array.from(alertDict[address].alerts);
         const findingsCount = alertDict[address].alertIds.size;
-        if (alerts.length > 1 && alerts.every((a) => a.alert.metadata.tokenAddress === alerts[0].alert.metadata.tokenAddress) && findingsCount == ALERT_THRESHOLD) {
+        if (alerts.length > 1 && alerts.every((a) => a.alert.metadata.tokenAddress === alerts[0].alert.metadata.tokenAddress)) {
           const alertIdString = Array.from(alertDict[address].alertIds).join(" && ");
           const alertHashString = Array.from(alertDict[address].alertHashes).join(" && ");
           const txHashString = Array.from(alertDict[address].txHashes).join(" && ");
-
+          if (txHashString.length == ALERT_THRESHOLD) {
           const finding = Finding.fromObject({
             name: "Soft Rug Pulls Detected",
             description: `Likely Soft rug pull has been detected`,
@@ -81,6 +81,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
             },
           });
           findings.push(finding);
+        }
         }
       } catch (error)
 {
