@@ -85,10 +85,10 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
         }
       } catch (error)
 {
-  console.log(error)
 }
   }
-  if (alert && alertType === 'Exploit') {
+  if (alert ) {
+    if (alert.alertId === "SOFT-RUG-PULL-SUS-POOL-REMOVAL"){
     const finding = Finding.fromObject({
       name: "Soft Rug Pulls",
       description: `Soft rug pull has been detected`,
@@ -114,7 +114,7 @@ const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
       },
     })
     findings.push(finding);
-  }
+  }}
 
   }
   return findings
